@@ -1,0 +1,38 @@
+# 构建产物
+gh-proxy
+gh-proxy.exe
+*.exe
+*.out
+
+# 配置文件
+config.json
+
+# Go编译产物
+*.o
+*.a
+*.so
+
+# 依赖目录
+go.work
+
+# 日志文件
+*.log
+
+# IDE相关
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker相关
+.dockerignore
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# OS相关
+.DS_Store
+Thumbs.db
