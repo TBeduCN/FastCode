@@ -34,20 +34,20 @@
 1. 克隆项目
 
 ```bash
-git clone https://github.com/yourname/FastCode.git
+git clone https://github.com/TBeduCN/FastCode.git
 cd FastCode
 ```
 
 2. 构建项目
 
 ```bash
-go build -o gh-proxy main.go
+go build -o fastcode main.go
 ```
 
 3. 运行服务
 
 ```bash
-./gh-proxy
+./fastcode
 ```
 
 4. 访问服务

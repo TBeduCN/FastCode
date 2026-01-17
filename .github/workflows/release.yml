@@ -1,0 +1,92 @@
+name: Release
+
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            goos: linux
+            goarch: amd64
+          - os: linux
+            arch: arm64
+            goos: linux
+            goarch: arm64
+          - os: linux
+            arch: 386
+            goos: linux
+            goarch: 386
+          - os: windows
+            arch: amd64
+            goos: windows
+            goarch: amd64
+          - os: windows
+            arch: 386
+            goos: windows
+            goarch: 386
+          - os: darwin
+            arch: amd64
+            goos: darwin
+            goarch: amd64
+          - os: darwin
+            arch: arm64
+            goos: darwin
+            goarch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.20.0'
+
+      - name: Extract version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          mkdir -p dist
+          go build -ldflags "-s -w" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}
+          path: dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/fastcode-*
