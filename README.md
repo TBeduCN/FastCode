@@ -29,6 +29,12 @@
 
 ## 快速开始
 
+您可以在 [FastCode Releases](https://github.com/TBeduCN/FastCode/releases) 页面下载预编译的二进制文件。
+
+1. 下载二进制文件
+2. 解压文件到您选择的目录
+3. 运行 `fastcode.exe` 文件（Windows）或 `./fastcode` 文件（Unix/Linux）。
+
 ### 直接运行
 
 1. 克隆项目
