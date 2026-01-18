@@ -89,19 +89,26 @@ func main() {
 	// 设置Gin模式
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	var err error
 
 	// 配置静态文件服务
-	subFS, err := fs.Sub(embeddedPublic, "public")
-	if err != nil {
-		fmt.Printf("无法创建子文件系统: %v\n", err)
-		// 如果嵌入的文件系统失败，尝试使用本地文件系统
+	// 1. 首先尝试使用本地文件系统（如果public目录存在）
+	if _, err := os.Stat("./public"); err == nil {
+		fmt.Println("使用本地文件系统提供静态资源")
 		router.StaticFS("/", http.Dir("./public"))
 	} else {
-		// 使用嵌入的文件系统
-		router.StaticFS("/", http.FS(subFS))
+		// 2. 否则使用嵌入的文件系统
+		subFS, err := fs.Sub(embeddedPublic, "public")
+		if err != nil {
+			fmt.Printf("无法创建子文件系统: %v\n", err)
+			// 3. 如果嵌入的文件系统也失败，使用默认处理
+		} else {
+			fmt.Println("使用嵌入的文件系统提供静态资源")
+			router.StaticFS("/", http.FS(subFS))
+		}
 	}
 
-	// 处理所有路由
+	// 处理所有未匹配的路由（代理请求）
 	router.NoRoute(handler)
 
 	// 启动服务器
@@ -285,13 +292,13 @@ func downloadStaticFiles() error {
 
 // 解压zip文件
 func unzip(src, dest string) error {
-	reader, err := zip.OpenReader(src)
+	zipReader, err := zip.OpenReader(src)
 	if err != nil {
 		return err
 	}
-	defer reader.Close()
+	defer zipReader.Close()
 
-	for _, file := range reader.File {
+	for _, file := range zipReader.File {
 		path := filepath.Join(dest, file.Name)
 
 		// 创建目录
@@ -310,16 +317,18 @@ func unzip(src, dest string) error {
 		if err != nil {
 			return err
 		}
-		defer writer.Close()
 
 		// 复制内容
-		reader, err := file.Open()
+		fileReader, err := file.Open()
 		if err != nil {
+			writer.Close()
 			return err
 		}
-		defer reader.Close()
 
-		_, err = io.Copy(writer, reader)
+		_, err = io.Copy(writer, fileReader)
+		fileReader.Close()
+		writer.Close()
+
 		if err != nil {
 			return err
 		}
@@ -386,10 +395,16 @@ func handler(c *gin.Context) {
 		rawPath = strings.TrimPrefix(rawPath, "/")
 	}
 
-	// 如果是空路径，返回首页
-	if rawPath == "" {
-		c.File("./public/index.html")
-		return
+	// 检查是否为静态文件请求（如果文件存在于public目录，让静态文件服务处理）
+	if rawPath != "" {
+		// 构建本地文件路径
+		localPath := filepath.Join("./public", rawPath)
+		// 检查文件是否存在
+		if _, err := os.Stat(localPath); err == nil {
+			// 文件存在，让Gin的静态文件服务处理
+			c.Next()
+			return
+		}
 	}
 
 	// 构建完整URL
