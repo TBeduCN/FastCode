@@ -72,3 +72,29 @@ jobs:
             echo "❌ Binary build failed"
             exit 1
           fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastcode-dev-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
+          retention-days: 7
+
+  package-static:
+    name: Package static files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Zip public folder
+        run: |
+          mkdir -p dist
+          zip -r dist.zip public/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-files-dev
+          path: dist.zip
+          retention-days: 7
