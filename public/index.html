@@ -57,6 +57,17 @@
         <div id="waline"></div>
     </div>
 
+    <!-- 页脚 -->
+    <p style="position: sticky;top: calc(100% - 2.5em);">
+        由 <a style="color: #1E90FF" href="https://github.com/TBeduCN/FastCode" target="_blank" rel="noopener noreferrer">FastCode</a> 
+        提供技术支持 |
+        版权所有 © <span id="year"></span> <a style="color: #1E90FF" href="https://www.tbedu.top" target="_blank" rel="noopener noreferrer">TBeduCN</a>
+        <script>
+            // 自动更新年份
+            document.getElementById('year').textContent = new Date().getFullYear();
+        </script>
+    </p>
+
     <!-- 外部JavaScript文件 -->
     <script type="module" src="/script.js"></script>
     <script type="module" src="/waline.js"></script>

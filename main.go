@@ -30,6 +30,9 @@ const (
 // 版本号，由编译时注入
 var version = "dev"
 
+// 提交哈希，由编译时注入
+var commit = "unknown"
+
 // 静态资源嵌入
 //
 //go:embed public/*
@@ -80,6 +83,23 @@ var defaultConfig = Config{
 }
 
 func main() {
+	// 直接输出logo和项目信息
+	fmt.Println("______           __  ______          __   ")
+	fmt.Println("   / ____/___ ______/ /_/ ____/___  ____/ /__ ")
+	fmt.Println("  / /_  / __ / ___/ __/ /   / __ / __  / _ ")
+	fmt.Println(" / __/ / /_/ __  ) /_/ /___/ /_/ / /_/ /  __/")
+	fmt.Println("/_/    __,_/____/__/____/____/__,_/___/")
+	fmt.Println()
+	fmt.Println("========================================")
+	fmt.Println("FastCode - GitHub代理加速服务")
+	fmt.Printf("版本: %s\n", version)
+	fmt.Printf("提交哈希: %s\n", commit)
+	fmt.Println("========================================")
+	fmt.Println()
+
+	// 暂停一下，确保输出能被看到
+	time.Sleep(500 * time.Millisecond)
+
 	// 初始化HTTP客户端
 	initHTTPClient()
 

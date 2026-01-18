@@ -57,7 +57,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          go build -ldflags "-s -w -X main.version=dev" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
+          go build -ldflags "-s -w -X main.version=dev -X main.commit=${{ github.sha }}" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
 
       - name: Verify binary
         run: |

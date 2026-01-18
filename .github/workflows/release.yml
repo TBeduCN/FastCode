@@ -64,7 +64,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          go build -ldflags "-s -w -X main.version=${{ env.VERSION }}" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
+          go build -ldflags "-s -w -X main.version=${{ env.VERSION }} -X main.commit=${{ github.sha }}" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
