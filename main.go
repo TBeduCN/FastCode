@@ -217,12 +217,21 @@ func autoRefreshConfig(path string) {
 func initStaticFiles() {
 	// 检查public目录是否存在
 	if _, err := os.Stat("./public"); os.IsNotExist(err) {
-		fmt.Println("public目录不存在，尝试下载静态资源...")
-		err := downloadStaticFiles()
-		if err != nil {
-			fmt.Printf("下载静态资源失败: %v\n", err)
-			fmt.Println("使用嵌入的静态资源...")
-			// 从嵌入的文件系统复制静态文件到本地
+		fmt.Println("public目录不存在，正在准备静态资源...")
+
+		// 只有正式版本（v*.*.*）才尝试从GitHub下载静态资源
+		if strings.HasPrefix(version, "v") {
+			fmt.Println("检测到正式版本，尝试从GitHub下载静态资源...")
+			err := downloadStaticFiles()
+			if err != nil {
+				fmt.Printf("下载静态资源失败: %v\n", err)
+				fmt.Println("使用嵌入的静态资源...")
+				// 从嵌入的文件系统复制静态文件到本地
+				copyEmbeddedFiles(embeddedPublic, "public", "./public")
+			}
+		} else {
+			// 开发版本直接使用嵌入的静态资源
+			fmt.Println("检测到开发版本，直接使用嵌入的静态资源...")
 			copyEmbeddedFiles(embeddedPublic, "public", "./public")
 		}
 	}
