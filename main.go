@@ -83,17 +83,18 @@ var defaultConfig = Config{
 }
 
 func main() {
-	// 直接输出logo和项目信息
-	fmt.Println("______           __  ______          __   ")
+	fmt.Println()
+	fmt.Println("    ______           __  ______          __   ")
 	fmt.Println("   / ____/___ ______/ /_/ ____/___  ____/ /__ ")
 	fmt.Println("  / /_  / __ / ___/ __/ /   / __ / __  / _ ")
 	fmt.Println(" / __/ / /_/ __  ) /_/ /___/ /_/ / /_/ /  __/")
 	fmt.Println("/_/    __,_/____/__/____/____/__,_/___/")
 	fmt.Println()
-	fmt.Println("========================================")
-	fmt.Println("FastCode - GitHub代理加速服务")
-	fmt.Printf("版本: %s\n", version)
-	fmt.Printf("提交哈希: %s\n", commit)
+	shortCommit := commit
+	if len(shortCommit) > 7 {
+		shortCommit = shortCommit[:7]
+	}
+	fmt.Printf("   %-15s %s\n", version, shortCommit)
 	fmt.Println("========================================")
 	fmt.Println()
 
