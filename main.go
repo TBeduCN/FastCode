@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -62,6 +63,7 @@ type Config struct {
 	AllowProxyAll  bool     `json:"allowProxyAll"` // 是否允许代理非github的其他地址
 	OtherWhiteList []string `json:"otherWhiteList"`
 	OtherBlackList []string `json:"otherBlackList"`
+	UUID           string   `json:"uuid"` // 唯一标识符，用于数据统计
 }
 
 // 默认配置
@@ -74,6 +76,7 @@ var defaultConfig = Config{
 	AllowProxyAll:  false,
 	OtherWhiteList: []string{},
 	OtherBlackList: []string{},
+	UUID:           "",
 }
 
 func main() {
@@ -160,9 +163,26 @@ func initConfig() {
 	go autoRefreshConfig(configPath)
 }
 
+// 生成UUID
+func generateUUID() string {
+	uuid := make([]byte, 16)
+	_, err := rand.Read(uuid)
+	if err != nil {
+		// 如果生成失败，使用时间戳和随机数生成一个简单的UUID
+		return fmt.Sprintf("%d%08x", time.Now().UnixNano(), rand.Int31())
+	}
+	// 格式化UUID为标准格式
+	return fmt.Sprintf("%x-%x-%x-%x-%x",
+		uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+}
+
 // 生成默认配置文件
 func generateDefaultConfig(path string) error {
-	configData, err := json.MarshalIndent(defaultConfig, "", "  ")
+	// 为新配置生成UUID
+	config := defaultConfig
+	config.UUID = generateUUID()
+
+	configData, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -201,6 +221,22 @@ func loadConfig(path string) {
 	}
 	if newConfig.SizeLimit <= 0 {
 		newConfig.SizeLimit = defaultSizeLimit
+	}
+	// 如果配置文件中没有UUID，生成一个新的
+	if newConfig.UUID == "" {
+		newConfig.UUID = generateUUID()
+		// 将带有UUID的配置写回文件
+		configData, err := json.MarshalIndent(newConfig, "", "  ")
+		if err != nil {
+			fmt.Printf("更新配置文件失败: %v\n", err)
+		} else {
+			err = os.WriteFile(path, configData, 0644)
+			if err != nil {
+				fmt.Printf("写入配置文件失败: %v\n", err)
+			} else {
+				fmt.Println("配置文件已更新UUID")
+			}
+		}
 	}
 
 	configLock.Lock()

@@ -156,7 +156,7 @@ Waline是一个基于Valine开发的评论系统，支持匿名评论、Markdown
 
 2. **修改Waline配置**
 
-   打开 `public/script.js` 文件，找到以下代码并修改 `serverURL` 为你的Waline服务端地址：
+   打开 `public/waline.js` 文件，找到以下代码并修改 `serverURL` 为你的Waline服务端地址：
 
    ```javascript
    window.WalineInstance = init({
@@ -208,7 +208,8 @@ Waline是一个基于Valine开发的评论系统，支持匿名评论、Markdown
 │   ├── index.html       # 首页
 │   ├── logo.png         # Logo
 │   ├── styles.css       # 样式文件
-│   └── script.js        # JavaScript文件
+│   ├── script.js        # 主JavaScript文件
+│   └── waline.js        # Waline评论系统配置
 ├── Dockerfile           # Docker构建文件
 └── README.md            # 项目说明
 ```
