@@ -64,7 +64,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          go build -ldflags "-s -w" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
+          go build -ldflags "-s -w -X main.version=${{ env.VERSION }}" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -72,13 +72,37 @@ jobs:
           name: fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}
           path: dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}${{ matrix.os == 'windows' && '.exe' || '' }}
 
-  release:
-    name: Create Release
-    needs: build
+  package-static:
+    name: Package static files
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Extract version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Zip public folder
+        run: |
+          mkdir -p dist
+          zip -r dist.zip public/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-files
+          path: dist.zip
+
+  release:
+    name: Create Release
+    needs: [build, package-static]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -89,4 +113,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/fastcode-*
+          files: |
+            dist/fastcode-*
+            dist/dist.zip
+          body: |
+            ## What's Changed
+
+            Full Changelog: https://github.com/TBeduCN/FastCode/commits/${{ env.VERSION }}
