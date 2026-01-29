@@ -158,24 +158,60 @@ jobs:
           CURRENT_TAG="${GITHUB_REF#refs/tags/}"
           echo "Current tag: $CURRENT_TAG"
 
-          # 从 GitHub API 获取 tag 列表
-          TAGS_JSON=$(curl -s "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/tags?per_page=100")
-          TAGS=( $(echo "$TAGS_JSON" | jq -r '.[].name' | sort -V) )
+          # 从 GitHub API 获取 tag 列表，增加错误处理
+          echo "Fetching tags from GitHub API..."
+          TAGS_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/tags?per_page=100")
 
-          # 找到上一个 tag
-          PREV_TAG=""
-          for i in "${!TAGS[@]}"; do
-            if [ "${TAGS[$i]}" = "$CURRENT_TAG" ]; then
-              if [ $i -gt 0 ]; then
-                PREV_TAG="${TAGS[$((i-1))]}"
+          # 检查 API 响应是否有效
+          if ! echo "$TAGS_JSON" | jq -e . >/dev/null 2>&1; then
+              echo "❌ GitHub API request failed or returned invalid JSON"
+              echo "API Response: $TAGS_JSON"
+              echo "Falling back to git tags..."
+              # 使用 git tag 命令获取本地标签
+              TAGS=( $(git tag --sort=-v:refname) )
+          else
+              # 检查是否返回错误信息
+              if echo "$TAGS_JSON" | jq -e 'type == "object" and has("message")' >/dev/null 2>&1; then
+                  ERROR_MSG=$(echo "$TAGS_JSON" | jq -r '.message')
+                  echo "❌ GitHub API Error: $ERROR_MSG"
+                  echo "Falling back to git tags..."
+                  TAGS=( $(git tag --sort=-v:refname) )
+              else
+                  # 正常情况：提取标签
+                  TAGS=( $(echo "$TAGS_JSON" | jq -r '.[].name' | sort -V) )
               fi
-              break
-            fi
-          done
+          fi
 
-          if [ -z "$PREV_TAG" ]; then
-            echo "⚠️ Could not find previous tag for $CURRENT_TAG, using first commit"
-            PREV_TAG=$(git rev-list --max-parents=0 HEAD | head -1)
+          echo "Available tags: ${TAGS[*]}"
+
+          # 如果没有获取到任何标签
+          if [ ${#TAGS[@]} -eq 0 ]; then
+              echo "⚠️ No tags found, using first commit as previous tag"
+              PREV_TAG=$(git rev-list --max-parents=0 HEAD | head -1)
+          else
+              # 找到当前标签的位置
+              PREV_TAG=""
+              for i in "${!TAGS[@]}"; do
+                  if [ "${TAGS[$i]}" = "$CURRENT_TAG" ]; then
+                      if [ $i -gt 0 ]; then
+                          PREV_TAG="${TAGS[$((i-1))]}"
+                      fi
+                      break
+                  fi
+              done
+              
+              if [ -z "$PREV_TAG" ]; then
+                  echo "⚠️ Could not find previous tag for $CURRENT_TAG in tag list"
+                  # 尝试找到上一个版本号
+                  if [ ${#TAGS[@]} -gt 1 ]; then
+                      PREV_TAG="${TAGS[0]}"
+                      echo "Using first tag in list: $PREV_TAG"
+                  else
+                      echo "⚠️ Only one tag found, using first commit"
+                      PREV_TAG=$(git rev-list --max-parents=0 HEAD | head -1)
+                  fi
+              fi
           fi
 
           echo "Previous tag: $PREV_TAG"
