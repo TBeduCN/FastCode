@@ -16,8 +16,8 @@
 启动后服务默认运行在 http://localhost:8080
 
 ## 注意事项
-**默认配置文件会自动生成在程序目录下的 config.json**
-**如需修改监听地址或端口，请编辑 config.json 文件**
+**默认配置文件会自动生成在程序目录下的 config/fastcode.yml**
+**如需修改监听地址或端口，请编辑 config/fastcode.yml 文件**
 
 ## 更新
 
