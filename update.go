@@ -263,6 +263,25 @@ func extractZipAndUpdate(zipPath string) error {
 		}
 	}
 
+	// 检查并复制public目录
+	publicSrcDir := filepath.Join(tempDir, "public")
+	if _, err := os.Stat(publicSrcDir); err == nil {
+		printlnWithTime("发现public目录，正在更新...")
+		publicDstDir := "./public"
+		// 移除旧的public目录
+		if err := os.RemoveAll(publicDstDir); err != nil {
+			printfWithTime("移除旧public目录失败: %v\n", err)
+			// 继续执行，不影响更新
+		}
+		// 复制新的public目录
+		if err := copyDir(publicSrcDir, publicDstDir); err != nil {
+			printfWithTime("更新public目录失败: %v\n", err)
+			// 继续执行，不影响更新
+		} else {
+			printlnWithTime("public目录更新成功")
+		}
+	}
+
 	printlnWithTime("可执行文件更新成功")
 	return nil
 }
@@ -337,6 +356,25 @@ func extractTarGzAndUpdate(tarGzPath string) error {
 		}
 	}
 
+	// 检查并复制public目录
+	publicSrcDir := filepath.Join(tempDir, "public")
+	if _, err := os.Stat(publicSrcDir); err == nil {
+		printlnWithTime("发现public目录，正在更新...")
+		publicDstDir := "./public"
+		// 移除旧的public目录
+		if err := os.RemoveAll(publicDstDir); err != nil {
+			printfWithTime("移除旧public目录失败: %v\n", err)
+			// 继续执行，不影响更新
+		}
+		// 复制新的public目录
+		if err := copyDir(publicSrcDir, publicDstDir); err != nil {
+			printfWithTime("更新public目录失败: %v\n", err)
+			// 继续执行，不影响更新
+		} else {
+			printlnWithTime("public目录更新成功")
+		}
+	}
+
 	printlnWithTime("可执行文件更新成功")
 	return nil
 }
@@ -372,6 +410,40 @@ func copyFile(src, dst string) error {
 
 	_, err = io.Copy(dstFile, srcFile)
 	return err
+}
+
+// 复制目录
+func copyDir(src, dst string) error {
+	// 创建目标目录
+	if err := os.MkdirAll(dst, 0755); err != nil {
+		return err
+	}
+
+	// 读取源目录中的所有项目
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	// 遍历所有项目
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			// 如果是目录，递归复制
+			if err := copyDir(srcPath, dstPath); err != nil {
+				return err
+			}
+		} else {
+			// 如果是文件，直接复制
+			if err := copyFile(srcPath, dstPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // 自动检查更新
