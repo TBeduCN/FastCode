@@ -26,6 +26,7 @@ var (
 		regexp.MustCompile(`^(?:https?://)?gist\.github\.com/([^/]+)/.+?/.+$`),
 		regexp.MustCompile(`^(?:https?://)?api\.github\.com/.*$`),
 		regexp.MustCompile(`^(?:https?://)?github\.com/api/.*$`),
+		regexp.MustCompile(`^(?:https?://)?github\.com/([^/]+)/([^/]+)/actions/runs/\d+/artifacts/\d+$`),
 	}
 
 	httpClient *http.Client
