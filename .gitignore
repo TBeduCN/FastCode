@@ -1,10 +1,9 @@
 # 构建产物
-gh-proxy
-gh-proxy.exe
 *.exe
 *.out
 
 # 配置文件
+config/
 config.json
 
 # Go编译产物
@@ -36,4 +35,3 @@ go.work
 # OS相关
 .DS_Store
 Thumbs.db
-fastcode
