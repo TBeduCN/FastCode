@@ -1,7 +1,6 @@
 package main
 
 import (
-	"archive/zip"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -281,117 +280,10 @@ func autoRefreshConfig(path string) {
 func initStaticFiles() {
 	// 检查public目录是否存在
 	if _, err := os.Stat("./public"); os.IsNotExist(err) {
-		fmt.Println("public目录不存在，正在准备静态资源...")
-
-		// 只有正式版本（v*.*.*）才尝试从GitHub下载静态资源
-		if strings.HasPrefix(version, "v") {
-			fmt.Println("检测到正式版本，尝试从GitHub下载静态资源...")
-			err := downloadStaticFiles()
-			if err != nil {
-				fmt.Printf("下载静态资源失败: %v\n", err)
-				fmt.Println("使用嵌入的静态资源...")
-				// 从嵌入的文件系统复制静态文件到本地
-				copyEmbeddedFiles(embeddedPublic, "public", "./public")
-			}
-		} else {
-			// 开发版本直接使用嵌入的静态资源
-			fmt.Println("检测到开发版本，直接使用嵌入的静态资源...")
-			copyEmbeddedFiles(embeddedPublic, "public", "./public")
-		}
+		fmt.Println("public目录不存在，使用嵌入的静态资源...")
+		// 从嵌入的文件系统复制静态文件到本地
+		copyEmbeddedFiles(embeddedPublic, "public", "./public")
 	}
-}
-
-// 下载静态资源
-func downloadStaticFiles() error {
-	// 构建下载URL
-	downloadURL := fmt.Sprintf("https://github.com/TBeduCN/FastCode/releases/download/%s/dist.zip", version)
-	fmt.Printf("正在从 %s 下载静态资源...\n", downloadURL)
-
-	// 发送HTTP请求
-	resp, err := http.Get(downloadURL)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// 检查响应状态
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("下载失败，状态码: %d", resp.StatusCode)
-	}
-
-	// 创建临时文件
-	tmpFile, err := os.CreateTemp(".", "dist-*.zip")
-	if err != nil {
-		return err
-	}
-	tmpPath := tmpFile.Name()
-	defer func() {
-		os.Remove(tmpPath)
-	}()
-
-	// 写入文件
-	_, err = io.Copy(tmpFile, resp.Body)
-	if err != nil {
-		return err
-	}
-	tmpFile.Close()
-
-	// 解压文件
-	fmt.Println("正在解压静态资源...")
-	err = unzip(tmpPath, ".")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("静态资源下载和解压成功")
-	return nil
-}
-
-// 解压zip文件
-func unzip(src, dest string) error {
-	zipReader, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	defer zipReader.Close()
-
-	for _, file := range zipReader.File {
-		path := filepath.Join(dest, file.Name)
-
-		// 创建目录
-		if file.FileInfo().IsDir() {
-			os.MkdirAll(path, file.Mode())
-			continue
-		}
-
-		// 创建文件
-		err := os.MkdirAll(filepath.Dir(path), 0755)
-		if err != nil {
-			return err
-		}
-
-		writer, err := os.Create(path)
-		if err != nil {
-			return err
-		}
-
-		// 复制内容
-		fileReader, err := file.Open()
-		if err != nil {
-			writer.Close()
-			return err
-		}
-
-		_, err = io.Copy(writer, fileReader)
-		fileReader.Close()
-		writer.Close()
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // 复制嵌入的文件到本地

@@ -16,30 +16,37 @@ jobs:
             arch: amd64
             goos: linux
             goarch: amd64
+            compress: tar.gz
           - os: linux
             arch: arm64
             goos: linux
             goarch: arm64
+            compress: tar.gz
           - os: linux
             arch: 386
             goos: linux
             goarch: 386
+            compress: tar.gz
           - os: windows
             arch: amd64
             goos: windows
             goarch: amd64
+            compress: zip
           - os: windows
             arch: 386
             goos: windows
             goarch: 386
+            compress: zip
           - os: darwin
             arch: amd64
             goos: darwin
             goarch: amd64
+            compress: tar.gz
           - os: darwin
             arch: arm64
             goos: darwin
             goarch: arm64
+            compress: tar.gz
 
     steps:
       - name: Checkout code
@@ -56,45 +63,39 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          mkdir -p dist
-          go build -ldflags "-s -w -X main.version=dev -X main.commit=${{ github.sha }}" -o dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
+          mkdir -p build
+          go build -ldflags "-s -w -X main.version=dev -X main.commit=${{ github.sha }}" -o build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }}
 
       - name: Verify binary
         run: |
           # 验证二进制文件是否存在
-          if [ -f dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }} ]; then
-            echo "✅ Binary built successfully: fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}"
+          if [ -f build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} ]; then
+            echo "✅ Binary built successfully: fastcode${{ matrix.os == 'windows' && '.exe' || '' }}"
             # 对于Linux和macOS，验证文件类型
             if [[ "${{ matrix.os }}" != "windows" ]]; then
-              file dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}
+              file build/fastcode
             fi
           else
             echo "❌ Binary build failed"
             exit 1
           fi
 
+      - name: Package application
+        run: |
+          mkdir -p package
+          cp -r build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
+          cp -r public/ package/
+          cd package
+          if [ "${{ matrix.compress }}" = "zip" ]; then
+            zip -r ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.zip .
+          else
+            tar -czf ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.tar.gz .
+          fi
+          cd ..
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: fastcode-dev-${{ matrix.os }}-${{ matrix.arch }}
-          path: dist/fastcode-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows' && '.exe' || '' }}
-          retention-days: 7
-
-  package-static:
-    name: Package static files
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Zip public folder
-        run: |
-          mkdir -p dist
-          zip -r dist.zip public/
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: static-files-dev
-          path: dist.zip
+          path: fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.compress }}
           retention-days: 7
