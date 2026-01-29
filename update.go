@@ -392,30 +392,50 @@ func autoCheckUpdate() {
 		printlnWithTime("更新内容:")
 		printlnWithTime(updateInfo.Body)
 
-		// 询问是否更新
-		printlnWithTime("\n是否下载并更新到最新版本? (y/n)")
-		var answer string
-		fmt.Scanln(&answer)
+		// 自动开始更新，不需要用户确认
+		printlnWithTime("自动开始更新...")
 
-		if strings.ToLower(answer) == "y" {
-			// 获取下载链接
-			downloadURL, err := getDownloadURL(updateInfo.TagName)
-			if err != nil {
-				printfWithTime("获取下载链接失败: %v\n", err)
-				return
-			}
-
-			// 下载并更新
-			if err := downloadAndUpdate(downloadURL); err != nil {
-				printfWithTime("更新失败: %v\n", err)
-				return
-			}
-
-			printlnWithTime("更新完成，请手动重启程序")
-		} else {
-			printlnWithTime("取消更新")
+		// 获取下载链接
+		downloadURL, err := getDownloadURL(updateInfo.TagName)
+		if err != nil {
+			printfWithTime("获取下载链接失败: %v\n", err)
+			return
 		}
+
+		// 下载并更新
+		if err := downloadAndUpdate(downloadURL); err != nil {
+			printfWithTime("更新失败: %v\n", err)
+			return
+		}
+
+		printlnWithTime("更新完成，准备自动重启...")
+
+		// 自动重启程序
+		restartProgram()
 	} else {
 		printfWithTime("当前已是最新版本: %s\n", version)
 	}
+}
+
+// 重启程序
+func restartProgram() {
+	// 获取当前可执行文件路径
+	execPath, err := os.Executable()
+	if err != nil {
+		printfWithTime("获取可执行文件路径失败: %v\n", err)
+		printlnWithTime("更新完成，请手动重启程序")
+		return
+	}
+
+	// 启动新的进程
+	printlnWithTime("正在启动新版本...")
+	if err := exec.Command(execPath).Start(); err != nil {
+		printfWithTime("启动新版本失败: %v\n", err)
+		printlnWithTime("更新完成，请手动重启程序")
+		return
+	}
+
+	// 退出当前进程
+	printlnWithTime("旧版本正在退出...")
+	os.Exit(0)
 }
