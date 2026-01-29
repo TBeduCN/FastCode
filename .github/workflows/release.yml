@@ -124,7 +124,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fastcode-${{ matrix.os }}-${{ matrix.arch }}
+          name: fastcode_${{ matrix.os }}_${{ matrix.arch }}
           path: fastcode_${{ env.VERSION }}_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.compress }}
 
   release:
