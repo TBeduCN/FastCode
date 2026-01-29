@@ -87,9 +87,9 @@ jobs:
           cp -r public/ package/
           cd package
           if [ "${{ matrix.compress }}" = "zip" ]; then
-            zip -r ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.zip .
+            zip -r ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.zip *
           else
-            tar -czf ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.tar.gz .
+            tar -czf ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.tar.gz *
           fi
           cd ..
 
