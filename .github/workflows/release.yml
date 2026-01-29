@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 env:
-  OPENROUTER_API_URL: https://91vip.futureppo.top/v1/chat/completions
-  OPENROUTER_MODEL: "gpt-4o-mini"
+  OPENROUTER_API_URL: https://ai.dpik.top/v1/chat/completions
+  OPENROUTER_MODEL: "gemini-2.5-flash"
   GITHUB_OWNER: "TBedu"
   GITHUB_REPO: "FastCode"
 
