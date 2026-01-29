@@ -83,7 +83,7 @@ jobs:
       - name: Package application
         run: |
           mkdir -p package
-          cp -r build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
+          cp build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
           cp -r public/ package/
           cd package
           if [ "${{ matrix.compress }}" = "zip" ]; then
@@ -96,6 +96,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fastcode-dev-${{ matrix.os }}-${{ matrix.arch }}
+          name: fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}
           path: fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.compress }}
           retention-days: 7

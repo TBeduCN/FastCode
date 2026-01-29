@@ -111,7 +111,7 @@ jobs:
       - name: Package application
         run: |
           mkdir -p package
-          cp -r build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
+          cp build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
           cp -r public/ package/
           cd package
           if [ "${{ matrix.compress }}" = "zip" ]; then
