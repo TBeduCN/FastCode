@@ -33,7 +33,7 @@ type Config struct {
 }
 
 // 配置文件版本
-const configVersion = "1.0.0"
+const configVersion = "1.0.1"
 
 // 默认配置
 var defaultConfig = Config{

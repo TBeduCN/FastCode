@@ -44,6 +44,9 @@ func main() {
 	// 初始化静态资源
 	initStaticFiles()
 
+	// 检查更新
+	go autoCheckUpdate()
+
 	// 设置Gin模式
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
