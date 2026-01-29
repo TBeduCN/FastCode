@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -17,7 +16,7 @@ var embeddedPublic embed.FS
 func initStaticFiles() {
 	// 检查public目录是否存在
 	if _, err := os.Stat("./public"); os.IsNotExist(err) {
-		fmt.Println("public目录不存在，使用嵌入的静态资源...")
+		printlnWithTime("public目录不存在，使用嵌入的静态资源...")
 		// 从嵌入的文件系统复制静态文件到本地
 		copyEmbeddedFiles(embeddedPublic, "public", "./public")
 	}
@@ -27,7 +26,7 @@ func initStaticFiles() {
 func copyEmbeddedFiles(efs embed.FS, srcDir, dstDir string) {
 	entries, err := efs.ReadDir(srcDir)
 	if err != nil {
-		fmt.Printf("读取嵌入文件失败: %v\n", err)
+		printfWithTime("读取嵌入文件失败: %v\n", err)
 		return
 	}
 
@@ -39,7 +38,7 @@ func copyEmbeddedFiles(efs embed.FS, srcDir, dstDir string) {
 			// 创建目录
 			err := os.MkdirAll(dstPath, 0755)
 			if err != nil {
-				fmt.Printf("创建目录失败: %v\n", err)
+				printfWithTime("创建目录失败: %v\n", err)
 				continue
 			}
 			// 递归复制子目录
@@ -48,13 +47,13 @@ func copyEmbeddedFiles(efs embed.FS, srcDir, dstDir string) {
 			// 复制文件
 			srcFile, err := efs.Open(srcPath)
 			if err != nil {
-				fmt.Printf("打开嵌入文件失败: %v\n", err)
+				printfWithTime("打开嵌入文件失败: %v\n", err)
 				continue
 			}
 
 			dstFile, err := os.Create(dstPath)
 			if err != nil {
-				fmt.Printf("创建本地文件失败: %v\n", err)
+				printfWithTime("创建本地文件失败: %v\n", err)
 				srcFile.Close()
 				continue
 			}
@@ -64,11 +63,11 @@ func copyEmbeddedFiles(efs embed.FS, srcDir, dstDir string) {
 			dstFile.Close()
 
 			if err != nil {
-				fmt.Printf("复制文件失败: %v\n", err)
+				printfWithTime("复制文件失败: %v\n", err)
 				continue
 			}
 
-			fmt.Printf("复制静态文件: %s -> %s\n", srcPath, dstPath)
+			printfWithTime("复制静态文件: %s -> %s\n", srcPath, dstPath)
 		}
 	}
 }

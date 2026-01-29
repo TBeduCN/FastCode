@@ -63,10 +63,10 @@ func initConfig() {
 
 	// 检查并创建config目录
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		fmt.Println("config目录不存在，创建目录...")
+		printlnWithTime("config目录不存在，创建目录...")
 		err := os.MkdirAll(configDir, 0755)
 		if err != nil {
-			fmt.Printf("创建config目录失败: %v\n", err)
+			printfWithTime("创建config目录失败: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -78,21 +78,21 @@ func initConfig() {
 		// 检查是否需要迁移配置文件
 		if _, err := os.Stat(oldConfigPath); err == nil {
 			// 旧配置文件存在，需要迁移
-			fmt.Println("检测到旧配置文件，开始迁移...")
+			printlnWithTime("检测到旧配置文件，开始迁移...")
 			err := migrateConfig(oldConfigPath, configPath)
 			if err != nil {
-				fmt.Printf("迁移配置文件失败: %v\n", err)
+				printfWithTime("迁移配置文件失败: %v\n", err)
 				// 迁移失败，继续使用旧配置文件
 				configPath = oldConfigPath
 			} else {
-				fmt.Println("配置文件迁移成功")
+				printlnWithTime("配置文件迁移成功")
 			}
 		} else {
 			// 生成默认配置文件
-			fmt.Println("配置文件不存在，生成默认配置...")
+			printlnWithTime("配置文件不存在，生成默认配置...")
 			err := generateDefaultConfig(configPath)
 			if err != nil {
-				fmt.Printf("生成配置文件失败: %v\n", err)
+				printfWithTime("生成配置文件失败: %v\n", err)
 				os.Exit(1)
 			}
 		}
@@ -178,7 +178,7 @@ func generateDefaultConfig(path string) error {
 func loadConfig(path string) {
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Printf("加载配置文件失败: %v，使用默认配置\n", err)
+		printfWithTime("加载配置文件失败: %v，使用默认配置\n", err)
 		configLock.Lock()
 		config = &defaultConfig
 		configLock.Unlock()
@@ -194,7 +194,7 @@ func loadConfig(path string) {
 		// 使用YAML解析器
 		decoder := yaml.NewDecoder(file)
 		if err := decoder.Decode(&newConfig); err != nil {
-			fmt.Printf("解析YAML配置文件失败: %v，使用默认配置\n", err)
+			printfWithTime("解析YAML配置文件失败: %v，使用默认配置\n", err)
 			configLock.Lock()
 			config = &defaultConfig
 			configLock.Unlock()
@@ -204,7 +204,7 @@ func loadConfig(path string) {
 		// 使用JSON解析器
 		decoder := json.NewDecoder(file)
 		if err := decoder.Decode(&newConfig); err != nil {
-			fmt.Printf("解析JSON配置文件失败: %v，使用默认配置\n", err)
+			printfWithTime("解析JSON配置文件失败: %v，使用默认配置\n", err)
 			configLock.Lock()
 			config = &defaultConfig
 			configLock.Unlock()
@@ -216,7 +216,7 @@ func loadConfig(path string) {
 	configUpdated := false
 	versionUpdated = false
 	if newConfig.Version != configVersion {
-		fmt.Printf("检测到配置文件版本不一致 (%s -> %s)，更新配置文件...\n", newConfig.Version, configVersion)
+		printfWithTime("检测到配置文件版本不一致 (%s -> %s)，更新配置文件...\n", newConfig.Version, configVersion)
 		newConfig.Version = configVersion
 		configUpdated = true
 		versionUpdated = true
@@ -317,23 +317,23 @@ func loadConfig(path string) {
 			// 生成JSON格式
 			configData, err = json.MarshalIndent(newConfig, "", "  ")
 			if err != nil {
-				fmt.Printf("更新配置文件失败: %v\n", err)
+				printfWithTime("更新配置文件失败: %v\n", err)
 				return
 			}
 		}
 
 		if err != nil {
-			fmt.Printf("更新配置文件失败: %v\n", err)
+			printfWithTime("更新配置文件失败: %v\n", err)
 		} else {
 			err = os.WriteFile(path, configData, 0644)
 			if err != nil {
-				fmt.Printf("写入配置文件失败: %v\n", err)
+				printfWithTime("写入配置文件失败: %v\n", err)
 			} else {
 				// 显示更新消息
 				if versionUpdated {
-					fmt.Println("配置文件已更新版本")
+					printlnWithTime("配置文件已更新版本")
 				} else if newConfig.UUID == "" {
-					fmt.Println("配置文件已更新UUID")
+					printlnWithTime("配置文件已更新UUID")
 				}
 			}
 		}
@@ -343,7 +343,7 @@ func loadConfig(path string) {
 	config = &newConfig
 	configLock.Unlock()
 
-	fmt.Println("配置文件加载成功")
+	printlnWithTime("配置文件加载成功")
 }
 
 // 自动刷新配置
@@ -426,7 +426,7 @@ func migrateConfig(oldPath, newPath string) error {
 	}
 
 	// 保留旧配置文件作为备份
-	fmt.Println("旧配置文件已保留作为备份")
+	printlnWithTime("旧配置文件已保留作为备份")
 
 	return nil
 }

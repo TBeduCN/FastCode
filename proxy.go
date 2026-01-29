@@ -196,7 +196,7 @@ func proxy(c *gin.Context, u string) {
 	// 流式返回响应体
 	_, err = io.Copy(c.Writer, resp.Body)
 	if err != nil {
-		fmt.Printf("响应数据复制失败: %v\n", err)
+		printfWithTime("响应数据复制失败: %v\n", err)
 	}
 }
 

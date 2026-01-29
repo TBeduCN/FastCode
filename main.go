@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,12 +27,12 @@ func main() {
 	if len(shortCommit) > 7 {
 		shortCommit = shortCommit[:7]
 	}
-	fmt.Printf("   %-15s %s\n", version, shortCommit)
-	fmt.Println("----------------------------------------")
+	fmt.Printf("     %-15s %s\n", version, shortCommit)
+	fmt.Println("----------------------------------------------")
 	fmt.Println()
 
 	// 暂停一下，确保输出能被看到
-	time.Sleep(500 * time.Millisecond)
+	// time.Sleep(500 * time.Millisecond)
 
 	// 初始化HTTP客户端
 	initHTTPClient()
@@ -55,16 +54,16 @@ func main() {
 	// 配置静态文件服务
 	// 1. 首先尝试使用本地文件系统（如果public目录存在）
 	if _, err := os.Stat("./public"); err == nil {
-		fmt.Println("使用本地文件系统提供静态资源")
+		printlnWithTime("使用本地文件系统提供静态资源")
 		router.StaticFS("/", http.Dir("./public"))
 	} else {
 		// 2. 否则使用嵌入的文件系统
 		subFS, err := fs.Sub(embeddedPublic, "public")
 		if err != nil {
-			fmt.Printf("无法创建子文件系统: %v\n", err)
+			printfWithTime("无法创建子文件系统: %v\n", err)
 			// 3. 如果嵌入的文件系统也失败，使用默认处理
 		} else {
-			fmt.Println("使用嵌入的文件系统提供静态资源")
+			printlnWithTime("使用嵌入的文件系统提供静态资源")
 			router.StaticFS("/", http.FS(subFS))
 		}
 	}
@@ -74,10 +73,10 @@ func main() {
 
 	// 启动服务器
 	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
-	fmt.Printf("GitHub代理加速服务启动成功，监听地址: %s\n", addr)
+	printfWithTime("GitHub代理加速服务启动成功，监听地址: %s\n", addr)
 	err = router.Run(addr)
 	if err != nil {
-		fmt.Printf("服务器启动失败: %v\n", err)
+		printfWithTime("服务器启动失败: %v\n", err)
 		os.Exit(1)
 	}
 }

@@ -176,8 +176,8 @@ func downloadAndUpdate(downloadURL string) error {
 	}
 
 	// 打印更新信息
-	fmt.Println("更新包下载完成，准备更新...")
-	fmt.Println("注意: 更新完成后需要手动重启程序")
+	printlnWithTime("更新包下载完成，准备更新...")
+	printlnWithTime("注意: 更新完成后需要手动重启程序")
 
 	// 根据文件类型处理
 	if strings.HasSuffix(fileName, ".zip") {
@@ -207,7 +207,7 @@ func extractZipAndUpdate(zipPath string) error {
 	defer os.RemoveAll(tempDir)
 
 	// 解压zip文件
-	fmt.Println("正在解压更新包...")
+	printlnWithTime("正在解压更新包...")
 	// 这里需要实现zip解压逻辑
 	// 由于Go标准库没有直接的zip解压函数，我们需要使用archive/zip包
 	// 但为了简化，这里我们使用命令行工具
@@ -263,7 +263,7 @@ func extractZipAndUpdate(zipPath string) error {
 		}
 	}
 
-	fmt.Println("可执行文件更新成功")
+	printlnWithTime("可执行文件更新成功")
 	return nil
 }
 
@@ -283,7 +283,7 @@ func extractTarGzAndUpdate(tarGzPath string) error {
 	defer os.RemoveAll(tempDir)
 
 	// 解压tar.gz文件
-	fmt.Println("正在解压更新包...")
+	printlnWithTime("正在解压更新包...")
 
 	// 对于不同平台，使用不同的解压命令
 	if runtime.GOOS == "windows" {
@@ -337,13 +337,13 @@ func extractTarGzAndUpdate(tarGzPath string) error {
 		}
 	}
 
-	fmt.Println("可执行文件更新成功")
+	printlnWithTime("可执行文件更新成功")
 	return nil
 }
 
 // 运行命令
 func runCommand(cmd string) error {
-	fmt.Println("执行命令:", cmd)
+	printlnWithTime("执行命令:", cmd)
 	// 使用os/exec包执行命令
 	var err error
 	if runtime.GOOS == "windows" {
@@ -376,24 +376,24 @@ func copyFile(src, dst string) error {
 
 // 自动检查更新
 func autoCheckUpdate() {
-	fmt.Println("正在检查更新...")
+	printlnWithTime("正在检查更新...")
 
 	// 获取最新版本信息
 	updateInfo, err := checkUpdate()
 	if err != nil {
-		fmt.Printf("检查更新失败: %v\n", err)
+		printfWithTime("检查更新失败: %v\n", err)
 		return
 	}
 
 	// 检查是否需要更新
 	if needUpdate(version, updateInfo.TagName) {
-		fmt.Printf("发现新版本: %s\n", updateInfo.TagName)
-		fmt.Printf("当前版本: %s\n", version)
-		fmt.Println("更新内容:")
-		fmt.Println(updateInfo.Body)
+		printfWithTime("发现新版本: %s\n", updateInfo.TagName)
+		printfWithTime("当前版本: %s\n", version)
+		printlnWithTime("更新内容:")
+		printlnWithTime(updateInfo.Body)
 
 		// 询问是否更新
-		fmt.Println("\n是否下载并更新到最新版本? (y/n)")
+		printlnWithTime("\n是否下载并更新到最新版本? (y/n)")
 		var answer string
 		fmt.Scanln(&answer)
 
@@ -401,21 +401,21 @@ func autoCheckUpdate() {
 			// 获取下载链接
 			downloadURL, err := getDownloadURL(updateInfo.TagName)
 			if err != nil {
-				fmt.Printf("获取下载链接失败: %v\n", err)
+				printfWithTime("获取下载链接失败: %v\n", err)
 				return
 			}
 
 			// 下载并更新
 			if err := downloadAndUpdate(downloadURL); err != nil {
-				fmt.Printf("更新失败: %v\n", err)
+				printfWithTime("更新失败: %v\n", err)
 				return
 			}
 
-			fmt.Println("更新完成，请手动重启程序")
+			printlnWithTime("更新完成，请手动重启程序")
 		} else {
-			fmt.Println("取消更新")
+			printlnWithTime("取消更新")
 		}
 	} else {
-		fmt.Printf("当前已是最新版本: %s\n", version)
+		printfWithTime("当前已是最新版本: %s\n", version)
 	}
 }
