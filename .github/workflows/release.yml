@@ -356,6 +356,8 @@ jobs:
                 cat "$DEFAULT_TEMPLATE" > CHANGELOG.md
                 sed -i "s/\$CURRENT_TAG/$CURRENT_TAG/g" CHANGELOG.md
                 sed -i "s/\$PREV_TAG/$PREV_TAG/g" CHANGELOG.md
+                sed -i "s/\${CURRENT_TAG}/$CURRENT_TAG/g" CHANGELOG.md
+                sed -i "s/\${PREV_TAG}/$PREV_TAG/g" CHANGELOG.md
               else
                 echo "⚠️ Default template file not found, using minimal template"
                 echo "# $CURRENT_TAG\n\n## 更新\n- 修复了一些问题\n- 优化了一些功能\n\n**完整更新日志**: [${PREV_TAG}...${CURRENT_TAG}](https://github.com/TBeduCN/FastCode/compare/${PREV_TAG}...${CURRENT_TAG})" > CHANGELOG.md
@@ -376,6 +378,8 @@ jobs:
               cat "$DEFAULT_TEMPLATE" > CHANGELOG.md
               sed -i "s/\$CURRENT_TAG/$CURRENT_TAG/g" CHANGELOG.md
               sed -i "s/\$PREV_TAG/$PREV_TAG/g" CHANGELOG.md
+              sed -i "s/\${CURRENT_TAG}/$CURRENT_TAG/g" CHANGELOG.md
+              sed -i "s/\${PREV_TAG}/$PREV_TAG/g" CHANGELOG.md
             else
               echo "⚠️ Default template file not found, using minimal template"
               echo "# $CURRENT_TAG\n\n## 更新\n- 修复了一些问题\n- 优化了一些功能\n\n**完整更新日志**: [${PREV_TAG}...${CURRENT_TAG}](https://github.com/TBeduCN/FastCode/compare/${PREV_TAG}...${CURRENT_TAG})" > CHANGELOG.md
