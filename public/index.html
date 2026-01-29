@@ -60,11 +60,22 @@
     <!-- 页脚 -->
     <p style="position: sticky;top: calc(100% - 2.5em);">
         由 <a style="color: #1E90FF" href="https://github.com/TBeduCN/FastCode" target="_blank" rel="noopener noreferrer">FastCode</a> 
-        提供技术支持 |
+        <span id="fastcode-version">(版本: 加载中...)</span> 提供技术支持 |
         版权所有 © <span id="year"></span> <a style="color: #1E90FF" href="https://www.tbedu.top" target="_blank" rel="noopener noreferrer">TBeduCN</a>
         <script>
             // 自动更新年份
             document.getElementById('year').textContent = new Date().getFullYear();
+            
+            // 获取FastCode版本信息
+            fetch('/api/version')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('fastcode-version').textContent = `(版本: ${data.version})`;
+                })
+                .catch(error => {
+                    console.error('获取版本信息失败:', error);
+                    document.getElementById('fastcode-version').textContent = '(版本: 未知)';
+                });
         </script>
     </p>
 

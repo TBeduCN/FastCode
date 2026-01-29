@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,11 +53,31 @@ func main() {
 	router := gin.Default()
 	var err error
 
+	// 初始化API路由
+	initAPIRoutes(router)
+
 	// 配置静态文件服务
 	// 1. 首先尝试使用本地文件系统（如果public目录存在）
 	if _, err := os.Stat("./public"); err == nil {
 		printlnWithTime("使用本地文件系统提供静态资源")
-		router.StaticFS("/", http.Dir("./public"))
+		// 使用中间件处理静态文件，避免与API路由冲突
+		router.Use(func(c *gin.Context) {
+			// 如果是API请求，跳过静态文件处理
+			if strings.HasPrefix(c.Request.URL.Path, "/api") {
+				c.Next()
+				return
+			}
+			// 尝试从本地文件系统提供静态文件
+			filePath := filepath.Join("./public", c.Request.URL.Path)
+			if _, err := os.Stat(filePath); err == nil {
+				// 文件存在，提供静态文件
+				c.File(filePath)
+				c.Abort()
+				return
+			}
+			// 文件不存在，继续处理
+			c.Next()
+		})
 	} else {
 		// 2. 否则使用嵌入的文件系统
 		subFS, err := fs.Sub(embeddedPublic, "public")
@@ -64,7 +86,25 @@ func main() {
 			// 3. 如果嵌入的文件系统也失败，使用默认处理
 		} else {
 			printlnWithTime("使用嵌入的文件系统提供静态资源")
-			router.StaticFS("/", http.FS(subFS))
+			// 使用中间件处理静态文件，避免与API路由冲突
+			router.Use(func(c *gin.Context) {
+				// 如果是API请求，跳过静态文件处理
+				if strings.HasPrefix(c.Request.URL.Path, "/api") {
+					c.Next()
+					return
+				}
+				// 尝试从嵌入的文件系统提供静态文件
+				file, err := subFS.Open(c.Request.URL.Path)
+				if err == nil {
+					// 文件存在，提供静态文件
+					defer file.Close()
+					c.FileFromFS(c.Request.URL.Path, http.FS(subFS))
+					c.Abort()
+					return
+				}
+				// 文件不存在，继续处理
+				c.Next()
+			})
 		}
 	}
 
