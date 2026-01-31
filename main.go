@@ -57,8 +57,18 @@ func main() {
 	initAPIRoutes(router)
 
 	// 配置静态文件服务
+	// 获取可执行文件路径
+	execPath, err := os.Executable()
+	if err != nil {
+		printfWithTime("获取可执行文件路径失败: %v\n", err)
+		// 失败时使用当前目录作为备选
+		execPath = "."
+	}
+	execDir := filepath.Dir(execPath)
+	publicDir := filepath.Join(execDir, "public")
+
 	// 1. 首先尝试使用本地文件系统（如果public目录存在）
-	if _, err := os.Stat("./public"); err == nil {
+	if _, err := os.Stat(publicDir); err == nil {
 		printlnWithTime("使用本地文件系统提供静态资源")
 		// 使用中间件处理静态文件，避免与API路由冲突
 		router.Use(func(c *gin.Context) {
@@ -68,7 +78,7 @@ func main() {
 				return
 			}
 			// 尝试从本地文件系统提供静态文件
-			filePath := filepath.Join("./public", c.Request.URL.Path)
+			filePath := filepath.Join(publicDir, c.Request.URL.Path)
 			if _, err := os.Stat(filePath); err == nil {
 				// 文件存在，提供静态文件
 				c.File(filePath)
@@ -113,7 +123,7 @@ func main() {
 
 	// 启动服务器
 	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
-	printfWithTime("GitHub代理加速服务启动成功，监听地址: %s\n", addr)
+	printfWithTime("服务器启动成功，监听地址: %s\n", addr)
 	err = router.Run(addr)
 	if err != nil {
 		printfWithTime("服务器启动失败: %v\n", err)

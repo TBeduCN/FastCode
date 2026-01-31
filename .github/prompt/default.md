@@ -19,17 +19,6 @@
 **默认配置文件会自动生成在程序目录下的 config/fastcode.yml**
 **如需修改监听地址或端口，请编辑 config/fastcode.yml 文件**
 
-## 更新
-
-### 🐛 修复
-- 修复了一些已知问题
-
-### ✨ 新增
-- 新增了一些功能
-
-### 🔧 优化
-- 优化了一些性能
-
 ---
 
 **完整更新日志**: [${PREV_TAG}...${CURRENT_TAG}](https://github.com/TBeduCN/FastCode/compare/${PREV_TAG}...${CURRENT_TAG})

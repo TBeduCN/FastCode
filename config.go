@@ -59,7 +59,6 @@ func initConfig() {
 	// 配置文件路径
 	configDir := "./config"
 	configPath := filepath.Join(configDir, "fastcode.yml")
-	oldConfigPath := "./config.json"
 
 	// 检查并创建config目录
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
@@ -71,30 +70,14 @@ func initConfig() {
 		}
 	}
 
-	// 检查新配置文件是否存在
-	if _, err := os.Stat(configPath); err == nil {
-		// 新配置文件存在，直接使用
-	} else {
-		// 检查是否需要迁移配置文件
-		if _, err := os.Stat(oldConfigPath); err == nil {
-			// 旧配置文件存在，需要迁移
-			printlnWithTime("检测到旧配置文件，开始迁移...")
-			err := migrateConfig(oldConfigPath, configPath)
-			if err != nil {
-				printfWithTime("迁移配置文件失败: %v\n", err)
-				// 迁移失败，继续使用旧配置文件
-				configPath = oldConfigPath
-			} else {
-				printlnWithTime("配置文件迁移成功")
-			}
-		} else {
-			// 生成默认配置文件
-			printlnWithTime("配置文件不存在，生成默认配置...")
-			err := generateDefaultConfig(configPath)
-			if err != nil {
-				printfWithTime("生成配置文件失败: %v\n", err)
-				os.Exit(1)
-			}
+	// 检查配置文件是否存在
+	if _, err := os.Stat(configPath); err != nil {
+		// 配置文件不存在，生成默认配置
+		printlnWithTime("配置文件不存在，生成默认配置...")
+		err := generateDefaultConfig(configPath)
+		if err != nil {
+			printfWithTime("生成配置文件失败: %v\n", err)
+			os.Exit(1)
 		}
 	}
 
@@ -354,79 +337,4 @@ func autoRefreshConfig(path string) {
 	for range ticker.C {
 		loadConfig(path)
 	}
-}
-
-// 迁移配置文件
-func migrateConfig(oldPath, newPath string) error {
-	// 读取旧配置文件
-	oldFile, err := os.Open(oldPath)
-	if err != nil {
-		return err
-	}
-	defer oldFile.Close()
-
-	// 解析旧配置文件
-	var oldConfig Config
-	decoder := json.NewDecoder(oldFile)
-	if err := decoder.Decode(&oldConfig); err != nil {
-		return err
-	}
-
-	// 生成带注释的YAML格式
-	yamlContent := "# FastCode 配置文件 (从旧配置文件迁移)\n"
-	yamlContent += "# 配置文件版本，请勿修改\n"
-	yamlContent += fmt.Sprintf("version: %s\n\n", configVersion)
-	yamlContent += "# 监听地址，默认: 0.0.0.0\n"
-	yamlContent += fmt.Sprintf("host: %s\n\n", oldConfig.Host)
-	yamlContent += "# 监听端口，默认: 8080\n"
-	yamlContent += fmt.Sprintf("port: %d\n\n", oldConfig.Port)
-	yamlContent += "# 文件大小限制，默认: 10GB\n"
-	yamlContent += fmt.Sprintf("sizeLimit: %d\n\n", oldConfig.SizeLimit)
-	yamlContent += "# GitHub地址白名单，支持通配符\n"
-	yamlContent += "whiteList: []\n"
-	if len(oldConfig.WhiteList) > 0 {
-		for _, item := range oldConfig.WhiteList {
-			yamlContent += fmt.Sprintf("  - %s\n", item)
-		}
-	}
-	yamlContent += "\n"
-	yamlContent += "# GitHub地址黑名单，支持通配符\n"
-	yamlContent += "blackList: []\n"
-	if len(oldConfig.BlackList) > 0 {
-		for _, item := range oldConfig.BlackList {
-			yamlContent += fmt.Sprintf("  - %s\n", item)
-		}
-	}
-	yamlContent += "\n"
-	yamlContent += "# 是否允许代理非GitHub的其他地址\n"
-	yamlContent += fmt.Sprintf("allowProxyAll: %t\n\n", oldConfig.AllowProxyAll)
-	yamlContent += "# 其他地址白名单\n"
-	yamlContent += "otherWhiteList: []\n"
-	if len(oldConfig.OtherWhiteList) > 0 {
-		for _, item := range oldConfig.OtherWhiteList {
-			yamlContent += fmt.Sprintf("  - %s\n", item)
-		}
-	}
-	yamlContent += "\n"
-	yamlContent += "# 其他地址黑名单\n"
-	yamlContent += "otherBlackList: []\n"
-	if len(oldConfig.OtherBlackList) > 0 {
-		for _, item := range oldConfig.OtherBlackList {
-			yamlContent += fmt.Sprintf("  - %s\n", item)
-		}
-	}
-	yamlContent += "\n"
-	yamlContent += "# 唯一标识符，用于数据统计\n"
-	yamlContent += fmt.Sprintf("uuid: %s\n", oldConfig.UUID)
-
-	// 写入新配置文件
-	err = os.WriteFile(newPath, []byte(yamlContent), 0644)
-	if err != nil {
-		return err
-	}
-
-	// 保留旧配置文件作为备份
-	printlnWithTime("旧配置文件已保留作为备份")
-
-	return nil
 }

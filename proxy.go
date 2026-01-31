@@ -26,7 +26,6 @@ var (
 		regexp.MustCompile(`^(?:https?://)?gist\.github\.com/([^/]+)/.+?/.+$`),
 		regexp.MustCompile(`^(?:https?://)?api\.github\.com/.*$`),
 		regexp.MustCompile(`^(?:https?://)?github\.com/api/.*$`),
-		regexp.MustCompile(`^(?:https?://)?github\.com/([^/]+)/([^/]+)/actions/runs/\d+/artifacts/\d+$`),
 	}
 
 	httpClient *http.Client
@@ -59,8 +58,18 @@ func handler(c *gin.Context) {
 
 	// 检查是否为静态文件请求（如果文件存在于public目录，让静态文件服务处理）
 	if rawPath != "" {
+		// 获取可执行文件路径
+		execPath, err := os.Executable()
+		if err != nil {
+			printfWithTime("获取可执行文件路径失败: %v\n", err)
+			// 失败时使用当前目录作为备选
+			execPath = "."
+		}
+		execDir := filepath.Dir(execPath)
+		publicDir := filepath.Join(execDir, "public")
+
 		// 构建本地文件路径
-		localPath := filepath.Join("./public", rawPath)
+		localPath := filepath.Join(publicDir, rawPath)
 		// 检查文件是否存在
 		if _, err := os.Stat(localPath); err == nil {
 			// 文件存在，让Gin的静态文件服务处理

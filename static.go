@@ -14,11 +14,20 @@ var embeddedPublic embed.FS
 
 // 初始化静态资源
 func initStaticFiles() {
+	// 获取可执行文件路径
+	execPath, err := os.Executable()
+	if err != nil {
+		printfWithTime("获取可执行文件路径失败: %v\n", err)
+		return
+	}
+	execDir := filepath.Dir(execPath)
+	publicDir := filepath.Join(execDir, "public")
+
 	// 检查public目录是否存在
-	if _, err := os.Stat("./public"); os.IsNotExist(err) {
+	if _, err := os.Stat(publicDir); os.IsNotExist(err) {
 		printlnWithTime("public目录不存在，使用嵌入的静态资源...")
 		// 从嵌入的文件系统复制静态文件到本地
-		copyEmbeddedFiles(embeddedPublic, "public", "./public")
+		copyEmbeddedFiles(embeddedPublic, "public", publicDir)
 	}
 }
 

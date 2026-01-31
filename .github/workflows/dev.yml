@@ -84,7 +84,6 @@ jobs:
         run: |
           mkdir -p package
           cp build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
-          cp -r public/ package/
           cd package
           if [ "${{ matrix.compress }}" = "zip" ]; then
             zip -r ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.zip *
@@ -92,7 +91,7 @@ jobs:
             tar -czf ../fastcode_dev_${{ matrix.os }}_${{ matrix.arch }}.tar.gz *
           fi
           cd ..
-
+          
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
