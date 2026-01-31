@@ -26,8 +26,26 @@ jobs:
         run: |
           go build -ldflags "-X main.version=${{ github.event.release.tag_name || github.event.inputs.version }} -X main.commit=$(git rev-parse --short HEAD)" -o fastcode .
 
+      - name: Set up Docker QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check for required secrets
+        shell: bash
+        run: |
+          echo "Checking if DOCKER secrets are provided..."
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "Error: DOCKERHUB_USERNAME secret is required"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "Error: DOCKERHUB_TOKEN secret is required"
+            exit 1
+          fi
+          echo "Secrets are provided"
+          echo "Registry: Docker Hub"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -35,27 +53,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract version
-        id: version
+      - name: Set Docker image tag
+        id: set-tag
         run: |
           if [ "${{ github.event.release.tag_name }}" != "" ]; then
-            echo "VERSION=${{ github.event.release.tag_name }}"
-            echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            VERSION=${{ github.event.release.tag_name }}
           else
-            echo "VERSION=${{ github.event.inputs.version }}"
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            VERSION=${{ github.event.inputs.version }}
           fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAGS=${{ secrets.DOCKERHUB_USERNAME }}/fastcode:$VERSION,${{ secrets.DOCKERHUB_USERNAME }}/fastcode:latest" >> $GITHUB_OUTPUT
 
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6.14.0
         with:
           context: .
           push: true
-          tags:
-            - ${{ secrets.DOCKERHUB_USERNAME }}/fastcode:${{ steps.version.outputs.VERSION }}
-            - ${{ secrets.DOCKERHUB_USERNAME }}/fastcode:latest
+          tags: ${{ steps.set-tag.outputs.TAGS }}
           build-args:
-            - VERSION=${{ steps.version.outputs.VERSION }}
-          # 使用多阶段构建，先构建二进制文件，然后复制到纯净镜像
-          # 这里假设项目根目录有 Dockerfile
-          # 如果没有，需要在下一步创建
+            - VERSION=${{ steps.set-tag.outputs.VERSION }}
