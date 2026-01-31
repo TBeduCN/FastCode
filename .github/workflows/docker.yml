@@ -55,7 +55,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/fastcode:${{ steps.version.outputs.VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/fastcode:latest
           build-args:
-            - VERSION=${{ steps.version.outputs.VERSION }}
+            VERSION: ${{ steps.version.outputs.VERSION }}
           # 使用多阶段构建，先构建二进制文件，然后复制到纯净镜像
           # 这里假设项目根目录有 Dockerfile
           # 如果没有，需要在下一步创建
