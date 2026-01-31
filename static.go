@@ -18,7 +18,8 @@ func initStaticFiles() {
 	execPath, err := os.Executable()
 	if err != nil {
 		printfWithTime("获取可执行文件路径失败: %v\n", err)
-		return
+		// 失败时使用当前目录作为备选
+		execPath = "."
 	}
 	execDir := filepath.Dir(execPath)
 	publicDir := filepath.Join(execDir, "public")
@@ -26,8 +27,25 @@ func initStaticFiles() {
 	// 检查public目录是否存在
 	if _, err := os.Stat(publicDir); os.IsNotExist(err) {
 		printlnWithTime("public目录不存在，使用嵌入的静态资源...")
+		// 先创建public目录
+		if err := os.MkdirAll(publicDir, 0755); err != nil {
+			printfWithTime("创建public目录失败: %v\n", err)
+			return
+		}
 		// 从嵌入的文件系统复制静态文件到本地
 		copyEmbeddedFiles(embeddedPublic, "public", publicDir)
+	} else {
+		// 检查public目录是否为空
+		entries, err := os.ReadDir(publicDir)
+		if err != nil {
+			printfWithTime("读取public目录失败: %v\n", err)
+			return
+		}
+		if len(entries) == 0 {
+			printlnWithTime("public目录为空，使用嵌入的静态资源...")
+			// 从嵌入的文件系统复制静态文件到本地
+			copyEmbeddedFiles(embeddedPublic, "public", publicDir)
+		}
 	}
 }
 
@@ -40,7 +58,8 @@ func copyEmbeddedFiles(efs embed.FS, srcDir, dstDir string) {
 	}
 
 	for _, entry := range entries {
-		srcPath := filepath.Join(srcDir, entry.Name())
+		// 使用正斜杠作为路径分隔符，因为embed包要求
+		srcPath := srcDir + "/" + entry.Name()
 		dstPath := filepath.Join(dstDir, entry.Name())
 
 		if entry.IsDir() {
