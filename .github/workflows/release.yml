@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Validate semantic version
         id: check
-        run:
+        run: |
           TAG="${GITHUB_REF#refs/tags/}"
           echo "Checking tag: $TAG"
           
@@ -102,12 +102,12 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
-        run:
+        run: |
           mkdir -p build
           go build -ldflags "-s -w -X main.version=${{ env.VERSION }} -X main.commit=${{ github.sha }}" -o build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }}
 
       - name: Package application
-        run:
+        run: |
           mkdir -p package
           cp build/fastcode${{ matrix.os == 'windows' && '.exe' || '' }} package/
           cd package
@@ -145,7 +145,7 @@ jobs:
         env:
           GITHUB_OWNER: "TBedu"
           GITHUB_REPO: "FastCode"
-        run:
+        run: |
           set -euo pipefail
 
           # 当前 tag
